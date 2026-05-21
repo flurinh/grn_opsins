@@ -7,9 +7,15 @@ MMseqs2 for fast reference search, threadpool for batch parallelism.
 import io
 import csv
 import os
+import gzip
+import json
+import math
 import subprocess
 import tempfile
+import zipfile
 import logging
+import urllib.request
+from functools import lru_cache
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
@@ -47,6 +53,96 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 REFERENCE_CSV = Path(protos.__file__).parent / "reference_data" / "grn" / "reference" / "type_I.csv"
 PROTEIN_FAMILY = "mo"
+
+# Aligned-structures bundle (Zenodo 20328414, baked into image at /app/data/mogrn_annotated_aligned/)
+ALIGNED_DIR = Path(__file__).parent / "data" / "mogrn_annotated_aligned"
+ALIGNED_MANIFEST = ALIGNED_DIR / "manifest.csv"
+ALIGNED_STRUCTURES = ALIGNED_DIR / "structures"
+
+# Zenodo opsin catalog (Hidber & Deupi, DOI 10.5281/zenodo.18147121)
+# Baked into the image at build time at /app/data/property/. URL kept as a runtime fallback.
+PROPERTY_LOCAL_CSV = Path(__file__).parent / "data" / "property" / "mo_exp.csv"
+ZENODO_PROPERTY_URL = "https://zenodo.org/api/records/18147121/files/property.zip/content"
+
+_catalog_records: Optional[List["CatalogEntry"]] = None
+_catalog_by_pdb: Dict[str, "CatalogEntry"] = {}
+
+
+def _coerce(val, kind):
+    if val is None or (isinstance(val, float) and math.isnan(val)):
+        return None
+    if kind is str:
+        s = str(val).strip()
+        return s or None
+    if kind is int:
+        try:
+            return int(float(val))
+        except (TypeError, ValueError):
+            return None
+    if kind is float:
+        try:
+            f = float(val)
+            return None if math.isnan(f) else round(f, 2)
+        except (TypeError, ValueError):
+            return None
+    return val
+
+
+def _load_catalog() -> List["CatalogEntry"]:
+    """Parse mo_exp.csv from the baked-in property/ bundle (Zenodo 18147121).
+
+    Falls back to a live Zenodo download if the local file is unavailable (dev only).
+    """
+    global _catalog_records, _catalog_by_pdb
+    if _catalog_records is not None:
+        return _catalog_records
+
+    if PROPERTY_LOCAL_CSV.exists():
+        logger.info("Loading catalog from local file: %s", PROPERTY_LOCAL_CSV)
+        df = pd.read_csv(PROPERTY_LOCAL_CSV)
+    else:
+        logger.warning("Local catalog missing — fetching from Zenodo: %s", ZENODO_PROPERTY_URL)
+        with urllib.request.urlopen(ZENODO_PROPERTY_URL, timeout=60) as resp:
+            blob = resp.read()
+        with zipfile.ZipFile(io.BytesIO(blob)) as zf:
+            with zf.open("property/mo_exp.csv") as fh:
+                df = pd.read_csv(fh)
+
+    pdb_lookup: Dict[str, CatalogEntry] = {}
+    by_name: Dict[str, CatalogEntry] = {}
+    for _, row in df.iterrows():
+        short = _coerce(row.get("display_name") or row.get("short_name"), str)
+        long_name = _coerce(row.get("name"), str)
+        primary = short or long_name
+        if not primary:
+            continue
+        entry = CatalogEntry(
+            name=primary,
+            display_name=long_name if short else None,
+            species=_coerce(row.get("source (species)"), str),
+            domain=_coerce(row.get("Rhodopsin Type (Microbial)"), str),
+            function=_coerce(row.get("molecular_function"), str),
+            function_detail=_coerce(row.get("molecular_function_advanced"), str),
+            pdb_id=_coerce(row.get("pdb_id") or row.get("PDB ID"), str),
+            method=_coerce(row.get("method"), str),
+            resolution=_coerce(row.get("resolution"), float),
+            reference=_coerce(row.get("reference"), str),
+            reference_year=_coerce(row.get("reference_year"), int),
+            length=_coerce(row.get("length"), int),
+            uniprot_id=_coerce(row.get("uniprot_id"), str),
+            sequence=_coerce(row.get("sequence") or row.get("seq"), str),
+        )
+        if entry.pdb_id:
+            pdb_lookup[entry.pdb_id.lower()] = entry
+        existing = by_name.get(entry.name)
+        if existing is None or (not existing.pdb_id and entry.pdb_id):
+            by_name[entry.name] = entry
+
+    records = list(by_name.values())
+    _catalog_records = records
+    _catalog_by_pdb = pdb_lookup
+    logger.info("Catalog loaded: %d entries, %d PDB structures indexed", len(records), len(pdb_lookup))
+    return records
 
 
 def _canonical_grn(grn: str) -> str:
@@ -378,14 +474,211 @@ class BatchAnnotateResponse(BaseModel):
     results: List[AnnotateResponse]
 
 
+class CatalogEntry(BaseModel):
+    name: str
+    display_name: Optional[str] = None
+    species: Optional[str] = None
+    domain: Optional[str] = None
+    function: Optional[str] = None
+    function_detail: Optional[str] = None
+    pdb_id: Optional[str] = None
+    method: Optional[str] = None
+    resolution: Optional[float] = None
+    reference: Optional[str] = None
+    reference_year: Optional[int] = None
+    length: Optional[int] = None
+    uniprot_id: Optional[str] = None
+    sequence: Optional[str] = None
+
+
+class CatalogResponse(BaseModel):
+    entries: List[CatalogEntry]
+
+
+class GRNPosition(BaseModel):
+    grn: str
+    residue: Optional[str] = None
+    label: str
+    description: str
+
+
+class GRNCategory(BaseModel):
+    key: str
+    name: str
+    color: str
+    summary: str
+    positions: List[GRNPosition]
+    relevant_for: List[str] = []
+
+
+class GRNFunctionsResponse(BaseModel):
+    categories: List[GRNCategory]
+
+
+
+class StructureManifestEntry(BaseModel):
+    structure_id: str
+    structure_type: str
+    n_atoms: int
+    n_grn_residues: int
+    name: str
+    display_name: Optional[str] = None
+    species: Optional[str] = None
+    function: Optional[str] = None
+    pdb_id: Optional[str] = None
+
+
+class StructureManifestResponse(BaseModel):
+    entries: List[StructureManifestEntry]
+
+
+class StructureGRNResidue(BaseModel):
+    resi: int
+    res1: str
+
+
+class StructureResponse(BaseModel):
+    structure_id: str
+    structure_type: str
+    pdb: str
+    residue_grn: Dict[int, str]
+    grn_residue: Dict[str, StructureGRNResidue] = {}
+    metadata: Optional[CatalogEntry] = None
+
 class ReferenceRow(BaseModel):
     name: str
     values: List[str]
+    metadata: Optional[CatalogEntry] = None
 
 
 class ReferenceTableResponse(BaseModel):
     columns: List[str]
     rows: List[ReferenceRow]
+
+
+
+
+# ---------------------------------------------------------------------------
+#   Aligned structures (Zenodo 20328414)
+# ---------------------------------------------------------------------------
+_structures_manifest_cache: Optional[List["StructureManifestEntry"]] = None
+_catalog_by_short_name: Dict[str, "CatalogEntry"] = {}
+
+
+def _build_catalog_name_index():
+    global _catalog_by_short_name
+    if _catalog_by_short_name:
+        return
+    try:
+        for e in _load_catalog():
+            _catalog_by_short_name[e.name.lower()] = e
+    except Exception as e:
+        logger.warning("Catalog name index unavailable: %s", e)
+
+
+def _structure_metadata(structure_id: str, structure_type: str) -> Optional["CatalogEntry"]:
+    """Join a structure_id to a catalog entry.
+
+    Experimental: structure_id is a lowercase PDB id (e.g. '1c3w') — match via pdb_id index.
+    Predicted: structure_id is '<protein>_model_0' — strip suffix and match by name.
+    """
+    try:
+        _load_catalog()
+        _build_catalog_name_index()
+    except Exception:
+        return None
+    if structure_type == "experimental":
+        return _catalog_by_pdb.get(structure_id.lower())
+    # predicted: strip _model_N suffix
+    base = structure_id
+    for suffix in ("_model_0", "_model_1", "_model_2", "_model_3"):
+        if base.endswith(suffix):
+            base = base[: -len(suffix)]
+            break
+    base = base.rstrip("_")
+    return _catalog_by_short_name.get(base.lower())
+
+
+def _load_structure_manifest() -> List["StructureManifestEntry"]:
+    global _structures_manifest_cache
+    if _structures_manifest_cache is not None:
+        return _structures_manifest_cache
+    if not ALIGNED_MANIFEST.exists():
+        raise FileNotFoundError(f"Aligned manifest not found at {ALIGNED_MANIFEST}")
+    df = pd.read_csv(ALIGNED_MANIFEST)
+    out: List[StructureManifestEntry] = []
+    for _, row in df.iterrows():
+        sid = str(row["structure_id"])
+        stype = str(row["structure_type"])
+        meta = _structure_metadata(sid, stype)
+        out.append(StructureManifestEntry(
+            structure_id=sid,
+            structure_type=stype,
+            n_atoms=int(row["n_atoms"]),
+            n_grn_residues=int(row["n_grn_residues"]),
+            name=meta.name if meta else sid,
+            display_name=(meta.display_name if meta else None),
+            species=(meta.species if meta else None),
+            function=(meta.function if meta else None),
+            pdb_id=(meta.pdb_id if meta else (sid.upper() if stype == "experimental" else None)),
+        ))
+    _structures_manifest_cache = out
+    logger.info("Structure manifest loaded: %d entries", len(out))
+    return out
+
+
+def _atom_pdb_line(serial, atom_name, res_name3l, chain, resnum, x, y, z, occ, bfac, element, is_het):
+    """Build a single PDB ATOM/HETATM record. Truncates serials and residue numbers if too large."""
+    record = "HETATM" if is_het else "ATOM  "
+    # Atom name: if 1-3 chars, pad with leading space (column 13 for element); 4 chars: no pad
+    if len(atom_name) >= 4:
+        an_field = atom_name[:4]
+    else:
+        an_field = f" {atom_name:<3s}"
+    return (
+        f"{record}{serial % 100000:>5d} {an_field:<4s} {res_name3l[:3]:>3s} {chain[:1]}"
+        f"{resnum % 10000:>4d}    {x:>8.3f}{y:>8.3f}{z:>8.3f}{occ:>6.2f}{bfac:>6.2f}"
+        f"          {element[:2]:>2s}"
+    )
+
+
+@lru_cache(maxsize=32)
+def _load_structure(structure_id: str) -> Tuple[str, Dict[int, str], Dict[str, StructureGRNResidue]]:
+    """Read a structure's gzipped CSV, return (pdb_string, residue_to_grn, grn_to_residue).
+
+    Cached so repeat hits are instant. residue_to_grn maps auth_seq_id -> GRN (e.g. '3.50').
+    grn_to_residue maps GRN -> {resi, res1} for the per-structure row beneath the GRN bar.
+    """
+    path = ALIGNED_STRUCTURES / f"{structure_id}.csv.gz"
+    if not path.exists():
+        raise FileNotFoundError(f"Structure {structure_id} not found in aligned bundle")
+    with gzip.open(path, "rt") as fh:
+        df = pd.read_csv(fh)
+    lines: List[str] = []
+    res_to_grn: Dict[int, str] = {}
+    grn_to_residue: Dict[str, StructureGRNResidue] = {}
+    for _, row in df.iterrows():
+        serial = int(row["atom_id"])
+        atom_name = str(row["atom_name"])
+        res3 = str(row["res_name3l"]) if not pd.isna(row.get("res_name3l")) else "UNK"
+        chain = str(row.get("auth_chain_id") or "A")
+        resnum = int(row["auth_seq_id"])
+        x = float(row["x"]); y = float(row["y"]); z = float(row["z"])
+        occ = float(row.get("occupancy") or 1.0) if not pd.isna(row.get("occupancy")) else 1.0
+        bfac = float(row.get("b_factor") or 0.0) if not pd.isna(row.get("b_factor")) else 0.0
+        element = str(row.get("element") or atom_name[:1])
+        is_het = str(row.get("group", "ATOM")).upper() == "HETATM"
+        lines.append(_atom_pdb_line(serial, atom_name, res3, chain, resnum, x, y, z, occ, bfac, element, is_het))
+        grn = row.get("grn")
+        if isinstance(grn, str) and grn and not pd.isna(grn):
+            res_to_grn[resnum] = grn
+            if grn not in grn_to_residue:
+                res1_raw = row.get("res_name1l")
+                res1 = (str(res1_raw).strip() if not pd.isna(res1_raw) else "X") or "X"
+                grn_to_residue[grn] = StructureGRNResidue(resi=resnum, res1=res1[:1])
+    lines.append("END")
+    return "\n".join(lines), res_to_grn, grn_to_residue
+
 
 
 # --- Endpoints ---
@@ -398,7 +691,86 @@ def health():
 @app.get("/reference", response_model=ReferenceTableResponse)
 def get_reference(min_occupancy: float = 0.1):
     annotator = get_annotator()
-    return annotator.get_reference_table(min_occupancy=min_occupancy)
+    table = annotator.get_reference_table(min_occupancy=min_occupancy)
+    # Best-effort catalog join: experimental rows use PDB IDs; predicted-model
+    # rows use a `<protein>_model_0` convention — strip the suffix and match by
+    # catalog short name so both flavours get metadata.
+    try:
+        _load_catalog()
+        _build_catalog_name_index()
+    except Exception as e:
+        logger.warning("Catalog unavailable, serving reference without metadata: %s", e)
+    enriched_rows = []
+    for row in table["rows"]:
+        name = row["name"]
+        meta = _catalog_by_pdb.get(name.lower())
+        if meta is None:
+            base = name
+            for suffix in ("_model_0", "_model_1", "_model_2", "_model_3"):
+                if base.endswith(suffix):
+                    base = base[: -len(suffix)]
+                    break
+            base = base.rstrip("_")
+            meta = _catalog_by_short_name.get(base.lower())
+        enriched_rows.append(ReferenceRow(name=name, values=row["values"], metadata=meta))
+    return ReferenceTableResponse(columns=table["columns"], rows=enriched_rows)
+
+
+@app.get("/catalog", response_model=CatalogResponse)
+def get_catalog():
+    try:
+        entries = _load_catalog()
+    except Exception as e:
+        logger.exception("Catalog load failed")
+        raise HTTPException(status_code=503, detail=f"Catalog unavailable: {e}")
+    return CatalogResponse(entries=entries)
+
+
+@app.get("/structures", response_model=StructureManifestResponse)
+def get_structures():
+    try:
+        entries = _load_structure_manifest()
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=503, detail=f"Aligned structures not bundled: {e}")
+    except Exception as e:
+        logger.exception("Structure manifest load failed")
+        raise HTTPException(status_code=500, detail=str(e))
+    return StructureManifestResponse(entries=entries)
+
+
+@app.get("/structures/{structure_id}", response_model=StructureResponse)
+def get_structure(structure_id: str):
+    manifest = {e.structure_id: e for e in _load_structure_manifest()}
+    if structure_id not in manifest:
+        raise HTTPException(status_code=404, detail=f"Unknown structure {structure_id!r}")
+    entry = manifest[structure_id]
+    try:
+        pdb, res_to_grn, grn_to_residue = _load_structure(structure_id)
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    return StructureResponse(
+        structure_id=structure_id,
+        structure_type=entry.structure_type,
+        pdb=pdb,
+        residue_grn=res_to_grn,
+        grn_residue=grn_to_residue,
+        metadata=_structure_metadata(structure_id, entry.structure_type),
+    )
+
+
+GRN_FUNCTIONS_PATH = Path(__file__).parent / "data" / "grn_functions.json"
+
+
+@app.get("/grn-functions", response_model=GRNFunctionsResponse)
+def get_grn_functions():
+    try:
+        with open(GRN_FUNCTIONS_PATH) as f:
+            return json.load(f)
+    except FileNotFoundError:
+        raise HTTPException(status_code=503, detail="GRN function map not bundled with backend")
+    except Exception as e:
+        logger.exception("GRN function map load failed")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/annotate", response_model=AnnotateResponse)

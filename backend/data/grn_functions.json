@@ -1,0 +1,465 @@
+{
+  "categories": [
+    {
+      "key": "framework",
+      "name": "Framework anchors",
+      "color": "#0a0a0a",
+      "summary": "Each MO numbering code is two numbers separated by a dot: helix (1–7) and position relative to a helix-specific anchor defined as X.50. Anchors are chosen by proximity to retinal in the structural alignment of 129 reference structures, with sequence conservation as a tiebreaker. Numbers decrease toward the N-terminus and increase toward the C-terminus.",
+      "positions": [
+        {
+          "grn": "1.50",
+          "label": "TM1 anchor",
+          "description": "Closest TM1 residue to retinal across the dataset. TM1 sits peripherally in the 7-TM bundle, further from retinal than other helices."
+        },
+        {
+          "grn": "2.50",
+          "label": "TM2 anchor",
+          "description": "Closest TM2 residue to retinal. Only two TM2 residues fall within the extended (<6 Å) retinal-binding pocket."
+        },
+        {
+          "grn": "3.50",
+          "label": "TM3 anchor",
+          "description": "Closest TM3 residue to retinal. TM3 is among the most conserved helices across the superfamily."
+        },
+        {
+          "grn": "4.50",
+          "label": "TM4 anchor",
+          "description": "Closest TM4 residue to retinal."
+        },
+        {
+          "grn": "5.50",
+          "label": "TM5 anchor",
+          "description": "Closest TM5 residue to retinal."
+        },
+        {
+          "grn": "6.50",
+          "label": "TM6 anchor",
+          "description": "Closest TM6 residue to retinal."
+        },
+        {
+          "grn": "7.50",
+          "residue": "K",
+          "label": "Schiff base lysine",
+          "description": "Conserved lysine that forms the covalent Schiff base linkage to all-trans retinal. The defining anchor of the entire MO numbering system."
+        },
+        {
+          "grn": "3.42",
+          "residue": "R",
+          "label": "Conserved arginine",
+          "description": "Arginine highly conserved across nearly all functionally characterized clusters (except PLCRs). Plays key roles in photocycle gating, ion transport, and channel function across families."
+        }
+      ],
+      "relevant_for": [
+        "*"
+      ]
+    },
+    {
+      "key": "pocket",
+      "name": "Retinal-binding pocket",
+      "color": "#7c3aed",
+      "summary": "Eighteen residues from TM3–7 surround retinal in HsBR (5 from TM3, 3 from TM4, 4 from TM5, 4 from TM6, 2 from TM7). Several positions act as spectral-tuning switches that shift λmax between functional classes. Blue annotations indicate shifts toward longer wavelengths, red toward shorter.",
+      "positions": [
+        {
+          "grn": "3.45",
+          "residue": "D",
+          "label": "First Schiff base counterion",
+          "description": "Carboxylate position; when Asp is present, can stabilize the protonated Schiff base. Often substituted in non-pump families (see the motif categories below)."
+        },
+        {
+          "grn": "7.46",
+          "residue": "D",
+          "label": "Second Schiff base counterion",
+          "description": "Second carboxylate position near K7.50; when Asp is present, can stabilize the protonated Schiff base. Replaced by Ser in heliorhodopsins, Asn in alveolate ChRs, and Pro in xenorhodopsins."
+        },
+        {
+          "grn": "3.53",
+          "label": "L/Q switch",
+          "description": "Spectral-tuning switch. L favors longer wavelengths; Q shifts λmax shorter."
+        },
+        {
+          "grn": "4.51",
+          "label": "N/LI switch",
+          "description": "Spectral-tuning switch. N shorter; LI longer wavelengths."
+        },
+        {
+          "grn": "6.54",
+          "label": "G/P switch",
+          "description": "Spectral-tuning switch. G shorter; P longer wavelengths."
+        },
+        {
+          "grn": "7.49",
+          "label": "A/TS switch",
+          "description": "Spectral-tuning switch. A favors longer wavelengths; T/S shorter."
+        },
+        {
+          "grn": "4.54",
+          "residue": "G",
+          "label": "Non-G rule (retinal planarity)",
+          "description": "Glycine here keeps the β-ionone ring planar (6-s-trans). Any other residue clashes with the ring and forces a 6-s-cis conformation — observed in cation channelrhodopsin KnChR."
+        },
+        {
+          "grn": "5.44",
+          "label": "Retinal uptake from membrane",
+          "description": "Implicated in retinal uptake from the lipid bilayer. The G→W mutation in TasHeR (G171W) blocks this process."
+        },
+        {
+          "grn": "5.47",
+          "label": "Lateral opening / carotenoid antenna",
+          "description": "Lines the TM5/TM6 lateral opening between the retinal pocket and the bilayer. G→W in Gloeobacter rhodopsin (G178W) blocks carotenoid antenna binding; in heliorhodopsins this position also contributes to the opening alongside 5.44."
+        }
+      ],
+      "relevant_for": [
+        "*"
+      ]
+    },
+    {
+      "key": "outward_proton",
+      "name": "Outward proton pumps (DTD)",
+      "color": "#c81e1e",
+      "summary": "Outward proton pumps drive vectorial proton transport from cytoplasm to extracellular bulk. They share the D-T-D motif on TM3 (D3.45, T3.49, D3.56), supported by the conserved arginine R3.42 and an extracellular proton-release group on ECL3 plus E7.38. HsBR is the canonical example.",
+      "positions": [
+        {
+          "grn": "3.45",
+          "residue": "D",
+          "label": "DTD motif — first counterion",
+          "description": "Where Asp is present, can act as a proton acceptor during the photocycle, receiving the proton via T3.49 before release toward the extracellular bulk."
+        },
+        {
+          "grn": "3.49",
+          "residue": "T",
+          "label": "DTD motif — proton relay",
+          "description": "When Thr is present (as in canonical outward H+ pumps), may mediate proton transfer from the Schiff base toward D3.45 and the extracellular release group."
+        },
+        {
+          "grn": "3.56",
+          "residue": "D",
+          "label": "DTD motif — intracellular proton uptake",
+          "description": "Where Asp is present, can accept a proton from intracellular bulk solvent and supply it to the Schiff base, closing the photocycle."
+        },
+        {
+          "grn": "3.42",
+          "residue": "R",
+          "label": "Switch arginine",
+          "description": "Highly conserved Arg across most clusters; can undergo conformational changes during the photocycle and is implicated in coupling Schiff-base deprotonation to proton release in outward pumps."
+        },
+        {
+          "grn": "7.38",
+          "residue": "E",
+          "label": "Proton release group",
+          "description": "When Glu is present together with ECL3 glutamates, may contribute to an extracellular proton-release group."
+        }
+      ],
+      "relevant_for": [
+        "Proton Pump"
+      ]
+    },
+    {
+      "key": "schizorhodopsin",
+      "name": "Inward H⁺ pumps — Schizorhodopsin (FSE)",
+      "color": "#dc2626",
+      "summary": "Schizorhodopsins (SzRs) — first identified in Asgard archaea — pump protons inward from extracellular to cytoplasm. The DTD motif is replaced by F-S-E (F3.45–S3.49–E3.56), and the extracellular proton-release group present in outward pumps is absent.",
+      "positions": [
+        {
+          "grn": "3.45",
+          "residue": "F",
+          "label": "FSE motif — counterion lost",
+          "description": "In schizorhodopsins, Phe is found at 3.45 instead of Asp. Loss of the TM3 counterion is thought to contribute to the reversed (inward) net proton-transport direction."
+        },
+        {
+          "grn": "3.49",
+          "residue": "S",
+          "label": "FSE motif — relay",
+          "description": "Ser at 3.49 (rather than Thr) is associated with the modified proton-transfer pathway proposed for schizorhodopsins."
+        },
+        {
+          "grn": "3.56",
+          "residue": "E",
+          "label": "FSE motif",
+          "description": "Glu rather than Asp at 3.56 on the cytoplasmic side of TM3 in schizorhodopsins."
+        }
+      ],
+      "relevant_for": [
+        "Proton Pump"
+      ]
+    },
+    {
+      "key": "xenorhodopsin",
+      "name": "Inward H⁺ pumps — Xenorhodopsin",
+      "color": "#ea580c",
+      "summary": "Xenorhodopsins (XeRs) also pump protons inward but via a different mechanism than schizorhodopsins. D7.46 is replaced by Pro, and the TM3 motif is DSA, DTL, or DTS — keeping the TM3 counterion D3.45 but altering the relay positions. The release group is absent.",
+      "positions": [
+        {
+          "grn": "7.46",
+          "residue": "P",
+          "label": "Loss of TM7 counterion",
+          "description": "In xenorhodopsins, Pro is found at 7.46 in place of the canonical Asp counterion. Combined with the modified TM3 motif, this is thought to reverse the net direction of proton transport."
+        },
+        {
+          "grn": "3.45",
+          "residue": "D",
+          "label": "Retained TM3 counterion",
+          "description": "In xenorhodopsins, the TM3 counterion at 3.45 typically remains as Asp (unlike schizorhodopsins)."
+        },
+        {
+          "grn": "3.49",
+          "label": "TM3 relay (variable)",
+          "description": "S, T, or T at 3.49 depending on the motif present (DSA / DTL / DTS)."
+        },
+        {
+          "grn": "3.56",
+          "label": "TM3 intracellular (variable)",
+          "description": "A, L, or S at 3.56 depending on the motif present (DSA / DTL / DTS)."
+        }
+      ],
+      "relevant_for": [
+        "Proton Pump"
+      ]
+    },
+    {
+      "key": "chloride_pump",
+      "name": "Chloride pumps (TSA / NTQ)",
+      "color": "#0e7490",
+      "summary": "Chloride pumps evolved independently in archaea and bacteria, reflected in two distinct TM3 motifs. Archaeal pumps (e.g., NpHR) use T3.45-S3.49-A3.56 or D3.56. Bacterial pumps use N3.45-T3.49-Q3.56 (NTQ). The negative charge lost from D3.45 is compensated by binding of the chloride substrate itself.",
+      "positions": [
+        {
+          "grn": "3.45",
+          "label": "TM3 motif (T or N)",
+          "description": "In chloride pumps, Thr (archaeal lineage) or Asn (bacterial lineage) is commonly found at 3.45. Where these are present, the lost negative charge can be compensated by the bound chloride substrate."
+        },
+        {
+          "grn": "3.49",
+          "label": "TM3 motif (S or T)",
+          "description": "Ser (archaeal) or Thr (bacterial) is commonly found at 3.49 in chloride pumps."
+        },
+        {
+          "grn": "3.56",
+          "label": "TM3 motif (A/D or Q)",
+          "description": "Ala or Asp (archaeal) or Gln (bacterial) is commonly found at 3.56 in chloride pumps."
+        }
+      ],
+      "relevant_for": [
+        "Chloride Pump"
+      ]
+    },
+    {
+      "key": "sodium_pump",
+      "name": "Sodium pumps (NDQ)",
+      "color": "#d97706",
+      "summary": "Sodium pumps share the N3.45-D3.49-Q3.56 motif on TM3. Transient proton transfer from the Schiff base to D3.49 during the photocycle creates an opening that lets a sodium ion pass through the Schiff base region. KR2 is the representative structure.",
+      "positions": [
+        {
+          "grn": "3.45",
+          "residue": "N",
+          "label": "NDQ motif",
+          "description": "In sodium pumps carrying the NDQ motif, Asn is found at 3.45 in place of Asp. Where Asn is present, the polar environment may be compatible with the Na+ transit path."
+        },
+        {
+          "grn": "3.49",
+          "residue": "D",
+          "label": "NDQ motif — transient proton acceptor",
+          "description": "When Asp is present at 3.49 (as in NDQ-motif sodium pumps), the Schiff base proton may transfer transiently to it during the photocycle, briefly opening the path for Na+ transit through the Schiff base region."
+        },
+        {
+          "grn": "3.56",
+          "residue": "Q",
+          "label": "NDQ motif",
+          "description": "Gln at 3.56 (replacing Asp) is characteristic of the NDQ motif in sodium pumps."
+        }
+      ],
+      "relevant_for": [
+        "Sodium Pump"
+      ]
+    },
+    {
+      "key": "heliorhodopsin",
+      "name": "Heliorhodopsins (HeRs)",
+      "color": "#057a55",
+      "summary": "Heliorhodopsins have a canonical 7-TM fold but inverted topology — intracellular N-terminus, extracellular C-terminus, with distinctive extracellular loops. They retain the TM3 counterion at 3.45 (as Glu) but replace the TM7 counterion with Ser. Characteristic residues H1.50, H2.57, E3.45, S7.46 are implicated in photocycle regulation. Most HeR functions remain unclear; V2HeR3 was recently shown to function as a proton transporter.",
+      "positions": [
+        {
+          "grn": "1.50",
+          "residue": "H",
+          "label": "Conserved histidine",
+          "description": "HeR-defining histidine in TM1; implicated in photocycle regulation where the residue is present."
+        },
+        {
+          "grn": "2.57",
+          "residue": "H",
+          "label": "Conserved histidine",
+          "description": "Second HeR-defining histidine on TM2; implicated in photocycle regulation where the residue is present."
+        },
+        {
+          "grn": "3.45",
+          "residue": "E",
+          "label": "TM3 counterion (E)",
+          "description": "In heliorhodopsins, Glu (rather than Asp) is commonly found at the TM3 counterion position."
+        },
+        {
+          "grn": "7.46",
+          "residue": "S",
+          "label": "TM7 counterion replacement",
+          "description": "In heliorhodopsins, Ser is commonly found at 7.46 in place of the canonical Asp counterion. A characteristic feature of the HeR family across bacterial/archaeal and eukaryotic/viral lineages."
+        }
+      ],
+      "relevant_for": [
+        "Sensor / Regulatory",
+        "Unknown"
+      ]
+    },
+    {
+      "key": "channelrhodopsin",
+      "name": "Channelrhodopsins (canonical dimeric)",
+      "color": "#1d4ed8",
+      "summary": "Cation- and anion-conducting channelrhodopsins (ChRs) are dimeric light-gated channels widely used in optogenetics. Unlike pumps, the TM3 3.45-3.49-3.56 positions do not drive channel function — substitutions there mainly affect kinetics. Ion selectivity and kinetics are governed by five glutamates on TM2 (E1–E5) and the DC gate formed by D4.47 and C3.50.",
+      "positions": [
+        {
+          "grn": "2.46",
+          "residue": "E",
+          "label": "Glutamate E1",
+          "description": "First of five TM2 glutamates (E1-E5) that, when present, can influence ion selectivity and kinetics in canonical dimeric channelrhodopsins."
+        },
+        {
+          "grn": "2.47",
+          "residue": "E",
+          "label": "Glutamate E2 (E90 in CrChR2)",
+          "description": "Where Glu is present, can deprotonate during the photocycle; in CrChR2 (E90) this residue is critical for ion selectivity. Mutations here have been used to convert ChRs between cation- and anion-conducting variants."
+        },
+        {
+          "grn": "2.54",
+          "residue": "E",
+          "label": "Glutamate E3",
+          "description": "TM2 glutamate; when present, can contribute to channel selectivity and kinetics."
+        },
+        {
+          "grn": "2.61",
+          "residue": "E",
+          "label": "Glutamate E4",
+          "description": "TM2 glutamate; when present, can contribute to channel selectivity and kinetics."
+        },
+        {
+          "grn": "2.65",
+          "residue": "E",
+          "label": "Glutamate E5",
+          "description": "TM2 glutamate; when present, can contribute to channel selectivity and kinetics."
+        },
+        {
+          "grn": "4.47",
+          "residue": "D",
+          "label": "DC gate (D156 in CrChR2)",
+          "description": "Together with C3.50, can form the DC gate that modulates channel closure kinetics and light sensitivity in canonical channelrhodopsins. Mutations here have been used to engineer bistable step-function opsins."
+        },
+        {
+          "grn": "3.50",
+          "residue": "C",
+          "label": "DC gate (C128 in CrChR2)",
+          "description": "Cysteine half of the DC gate where present. In CrChR2, the C128-D156 hydrogen bond underlies the bistable switch."
+        },
+        {
+          "grn": "3.45",
+          "label": "Kinetics modulator (E3.45T)",
+          "description": "Substitutions at 3.45 (e.g., E→T) have been shown to modulate channel kinetics in channelrhodopsins rather than determine function — the TM3 motif is not load-bearing in this family."
+        },
+        {
+          "grn": "3.56",
+          "label": "Kinetics modulator (H3.56R)",
+          "description": "Substitutions at 3.56 (e.g., H→R) have been shown to modulate channel kinetics in channelrhodopsins."
+        }
+      ],
+      "relevant_for": [
+        "Cation Channel",
+        "Anion Channel"
+      ]
+    },
+    {
+      "key": "sensory_rhodopsin",
+      "name": "Sensory rhodopsins (NpSRII)",
+      "color": "#6a0572",
+      "summary": "Transducer-activating (sensory) rhodopsins relay light signals to downstream effectors. NpSRII forms a 2:2 complex with its transducer HtrII through TM6/TM7 of the receptor and TM1/TM2 of HtrII. Retinal photoisomerization triggers structural changes at TM6 and TM7 positions that propagate to HtrII via the Y7.44 ↔ N74(HtrII) contact.",
+      "positions": [
+        {
+          "grn": "6.53",
+          "residue": "Y",
+          "label": "Y174 — signal transmission",
+          "description": "In NpSRII, Tyr at 6.53 (Y174) undergoes structural change upon retinal isomerization and is thought to contribute to signal relay between retinal and TM7."
+        },
+        {
+          "grn": "7.44",
+          "residue": "Y",
+          "label": "Y199 — transducer contact",
+          "description": "In NpSRII, Tyr at 7.44 (Y199) interacts with N74 of the HtrII transducer; its hydrogen bond to T7.49 (T204) is reorganized during signaling."
+        },
+        {
+          "grn": "7.45",
+          "residue": "L",
+          "label": "L200 — signal transmission",
+          "description": "Backbone reorganization at 7.45 (L200 in NpSRII) has been reported as part of the NpSRII → HtrII signaling pathway."
+        },
+        {
+          "grn": "7.46",
+          "residue": "D",
+          "label": "D201 — counterion + signaling",
+          "description": "Where Asp is present, fulfills the Schiff base counterion role; in NpSRII (D201) it has additionally been implicated in signal transmission."
+        },
+        {
+          "grn": "7.49",
+          "residue": "T",
+          "label": "T204 — signal-defining residue",
+          "description": "Critical for signaling in NpSRII (T204) but not conserved in HsSRI — suggesting the T204-based pathway may be specific to NpSRII rather than a general feature of all transducer-activating rhodopsins."
+        }
+      ],
+      "relevant_for": [
+        "Sensor / Regulatory"
+      ]
+    },
+    {
+      "key": "enzyme_fused",
+      "name": "Enzyme- and channel-fused rhodopsins",
+      "color": "#a16207",
+      "summary": "Rhodopsin-guanylyl cyclases, rhodopsin-phosphodiesterases, and channel-fused rhodopsins couple light detection to enzymatic or channel activity. They typically carry an additional TM0 helix at the N-terminus of the seven-TM core. The MO numbering system covers only the seven-TM retinal-binding domain — TM0 is not numbered. NeoR, the longest-wavelength rhodopsin reported (λmax ~690 nm), requires three acidic residues for activity.",
+      "positions": [
+        {
+          "grn": "3.45",
+          "residue": "E",
+          "label": "NeoR — E136",
+          "description": "In NeoR, Glu at this position (E136) has been reported as required for enzymatic activity."
+        },
+        {
+          "grn": "3.49",
+          "residue": "D",
+          "label": "NeoR — D140",
+          "description": "In NeoR, Asp at this position (D140) has been reported as required for activity."
+        },
+        {
+          "grn": "7.46",
+          "residue": "E",
+          "label": "NeoR — E262",
+          "description": "In NeoR, Glu replaces the canonical Asp at 7.46 (E262) and is reported as essential for the protein's far-red absorption (~690 nm) and enzymatic activity."
+        }
+      ],
+      "relevant_for": [
+        "Sensor / Regulatory"
+      ]
+    },
+    {
+      "key": "exceptions",
+      "name": "Structural exceptions",
+      "color": "#6b7280",
+      "summary": "Some rhodopsins exhibit local structural distortions that produce gaps or insertions in the alignment. The MO numbering handles these systematically: gaps skip the missing GRN; insertions receive fractional identifiers.",
+      "positions": [
+        {
+          "grn": "6.48",
+          "label": "Gap — ChRmine",
+          "description": "A constricted 3₁₀ helical turn in TM6 of ChRmine produces a gap; position 6.48 is simply skipped."
+        },
+        {
+          "grn": "5.451",
+          "label": "Insertion — TaraRRB-R1",
+          "description": "A bulged π-helical turn in TM5 of TaraRRB-R1 introduces an extra residue between 5.45 and 5.46, assigned the fractional GRN 5.451."
+        }
+      ],
+      "relevant_for": [
+        "*"
+      ]
+    }
+  ]
+}
