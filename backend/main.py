@@ -20,6 +20,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
+import protos
 from protos.processing.grn.grn_utils import (
     GRNConfigManager,
     get_seq,
@@ -44,7 +45,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 #   Reference data & annotator setup
 # ---------------------------------------------------------------------------
-REFERENCE_CSV = Path(__file__).parent.parent / "protos" / "src" / "protos" / "reference_data" / "grn" / "reference" / "type_I.csv"
+REFERENCE_CSV = Path(protos.__file__).parent / "reference_data" / "grn" / "reference" / "type_I.csv"
 PROTEIN_FAMILY = "mo"
 
 
