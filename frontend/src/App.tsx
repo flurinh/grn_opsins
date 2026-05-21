@@ -1890,6 +1890,24 @@ function StructureView({
     return fns;
   }, [selected, manifestById]);
 
+  const loadedFunctionsList = useMemo(
+    () => Array.from(loadedFunctions).sort(),
+    [loadedFunctions]
+  );
+
+  // For 2+ loaded structures: map each structure id to its assigned overlay
+  // colour (same cycle the viewer effect uses). Drives the in-viewport legend.
+  const overlayLegend = useMemo(() => {
+    const loadedIds = selected.filter((id) => data[id]);
+    if (loadedIds.length < 2) return null;
+    return loadedIds.map((id, idx) => ({
+      id,
+      color: STRUCT_OVERLAY_COLORS[idx % STRUCT_OVERLAY_COLORS.length],
+      label: displayStructureId(id),
+      name: manifestById.get(id)?.name || id,
+    }));
+  }, [selected, data, manifestById]);
+
   // GRNs that exist in at least one loaded structure AND have at least one curated
   // position relevant to the loaded function(s). Powers the quick-pick dropdown.
   const functionalResidues = useMemo<
@@ -1971,7 +1989,9 @@ function StructureView({
                   title={entry?.display_name || entry?.name || id}
                 >
                   <span className="struct-pill-dot" style={{ background: fnColor }} />
-                  <span className="struct-pill-label">{displayStructureId(id)}</span>
+                  <span className="struct-pill-label" style={{ color: fnColor }}>
+                    {displayStructureId(id)}
+                  </span>
                   {isLoading && <span className="struct-pill-loading">…</span>}
                   <button
                     type="button"
@@ -2057,8 +2077,41 @@ function StructureView({
         </div>
       )}
 
+      {loadedFunctionsList.length > 0 && (
+        <div className="struct-legend">
+          <span className="struct-legend-label">Families loaded</span>
+          {loadedFunctionsList.map((fn) => {
+            const c = FUNCTION_TONES[fn] || "#8a8780";
+            return (
+              <span
+                key={fn}
+                className="struct-legend-chip"
+                style={{ borderColor: c, color: c }}
+              >
+                {fn}
+              </span>
+            );
+          })}
+        </div>
+      )}
+
       <div className={`struct-stage ${panelEntries.length > 0 ? "with-panel" : ""}`}>
-        <div ref={containerRef} className="struct-viewer" />
+        <div className="struct-viewer-wrap">
+          <div ref={containerRef} className="struct-viewer" />
+          {overlayLegend && (
+            <div className="struct-viewer-legend" role="legend">
+              {overlayLegend.map((o) => (
+                <div key={o.id} className="struct-viewer-legend-item" title={o.name}>
+                  <span
+                    className="struct-viewer-legend-swatch"
+                    style={{ background: o.color }}
+                  />
+                  <span className="struct-viewer-legend-id">{o.label}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
         {panelEntries.length > 0 && (
           <aside className="struct-panel">
             {(() => {
@@ -2268,10 +2321,15 @@ function GRNSelectionBar({
               const struct = data[id];
               const entry = manifestById.get(id);
               const shortName = entry?.name || id;
+              const fnColor = entry?.function
+                ? FUNCTION_TONES[entry.function] || "var(--ink)"
+                : "var(--ink)";
               return (
                 <tr key={id} className="struct-grnbar-row-res">
                   <th className="struct-grnbar-rowname" scope="row" title={entry?.display_name || shortName}>
-                    <span className="struct-grnbar-rowname-label">{shortName}</span>
+                    <span className="struct-grnbar-rowname-label" style={{ color: fnColor }}>
+                      {shortName}
+                    </span>
                   </th>
                   {grnBar.map((g, i) => {
                     const hit = struct.grn_residue[g];

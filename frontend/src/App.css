@@ -984,6 +984,75 @@ thead .sticky-col {
   border-color: var(--ink);
 }
 
+.struct-legend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.struct-legend-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-right: 4px;
+}
+
+.struct-legend-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 9px;
+  font-size: 11px;
+  font-weight: 500;
+  border: 1px solid;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.struct-viewer-wrap {
+  position: relative;
+}
+
+.struct-viewer-legend {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 5;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid var(--line-2);
+  padding: 6px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  pointer-events: none;
+  user-select: none;
+  backdrop-filter: blur(2px);
+}
+
+.struct-viewer-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.struct-viewer-legend-swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+}
+
+.struct-viewer-legend-id {
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
 .struct-stage {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
