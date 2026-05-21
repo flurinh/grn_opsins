@@ -34,3 +34,17 @@ Thumbs.db
 
 # Logs
 *.log
+manuscript.md
+
+# Claude Code session state
+.claude/
+
+# Zenodo data fetched at Docker build time — never commit to the repo.
+# Only the curated grn_functions.json under backend/data/ is tracked.
+backend/data/mogrn_annotated_aligned/
+backend/data/property/
+backend/data/curated_grn/
+backend/data/mo_pred/
+
+# Scratch / paused-session notes
+STATUS.md
